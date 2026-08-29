@@ -13,6 +13,8 @@ public static class KeapOpenApiClientUtilRegistrar
     /// <summary>
     /// Adds <see cref="KeapOpenApiClientUtil"/> as a singleton service. <para/>
     /// </summary>
+    /// <param name="services">Service collection that receives the registration.</param>
+    /// <returns>The same service collection, so additional registrations can be chained.</returns>
     public static IServiceCollection AddKeapOpenApiClientUtilAsSingleton(this IServiceCollection services)
     {
         services.AddKeapOpenApiHttpClientAsSingleton()
@@ -24,6 +26,8 @@ public static class KeapOpenApiClientUtilRegistrar
     /// <summary>
     /// Adds <see cref="KeapOpenApiClientUtil"/> as a scoped service. <para/>
     /// </summary>
+    /// <param name="services">Service collection that receives the registration.</param>
+    /// <returns>The same service collection, so additional registrations can be chained.</returns>
     public static IServiceCollection AddKeapOpenApiClientUtilAsScoped(this IServiceCollection services)
     {
         services.AddKeapOpenApiHttpClientAsSingleton()
