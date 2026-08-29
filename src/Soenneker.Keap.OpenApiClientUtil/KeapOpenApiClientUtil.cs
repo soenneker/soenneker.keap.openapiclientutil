@@ -14,7 +14,7 @@ using Soenneker.Utils.AsyncSingleton;
 
 namespace Soenneker.Keap.OpenApiClientUtil;
 
-///<inheritdoc cref="IKeapOpenApiClientUtil"/>
+/// <inheritdoc cref="IKeapOpenApiClientUtil"/>
 public sealed class KeapOpenApiClientUtil : IKeapOpenApiClientUtil
 {
     private readonly AsyncSingleton<KeapOpenApiClient> _client;
