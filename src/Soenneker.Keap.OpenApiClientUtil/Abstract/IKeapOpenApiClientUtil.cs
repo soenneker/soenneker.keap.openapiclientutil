@@ -5,14 +5,14 @@ using System.Threading.Tasks;
 namespace Soenneker.Keap.OpenApiClientUtil.Abstract;
 
 /// <summary>
-/// Exposes a cached OpenAPI client instance.
+/// Provides a lazily initialized Keap API client cached for the utility's lifetime.
 /// </summary>
-public interface IKeapOpenApiClientUtil: IDisposable, IAsyncDisposable
+public interface IKeapOpenApiClientUtil : IDisposable, IAsyncDisposable
 {
     /// <summary>
-    /// Returns the configured keap OpenAPI Client used by the Keap OpenAPI Client.
+    /// Gets the generated client configured to call the Keap API.
     /// </summary>
-    /// <param name="cancellationToken">Token used to cancel the operation.</param>
-    /// <returns>A task whose result is the requested keap OpenAPI Client.</returns>
+    /// <param name="cancellationToken">Stops client initialization if the cached instance has not been created yet.</param>
+    /// <returns>The generated client cached for this utility's lifetime.</returns>
     ValueTask<KeapOpenApiClient> Get(CancellationToken cancellationToken = default);
 }

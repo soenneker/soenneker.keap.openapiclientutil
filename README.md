@@ -1,10 +1,12 @@
 [![](https://img.shields.io/nuget/v/soenneker.keap.openapiclientutil.svg?style=for-the-badge)](https://www.nuget.org/packages/soenneker.keap.openapiclientutil/)
+[![](https://img.shields.io/github/actions/workflow/status/soenneker/soenneker.keap.openapiclientutil/build-and-test.yml?style=for-the-badge)](https://github.com/soenneker/soenneker.keap.openapiclientutil/actions/workflows/build-and-test.yml)
 [![](https://img.shields.io/github/actions/workflow/status/soenneker/soenneker.keap.openapiclientutil/publish-package.yml?style=for-the-badge)](https://github.com/soenneker/soenneker.keap.openapiclientutil/actions/workflows/publish-package.yml)
 [![](https://img.shields.io/nuget/dt/soenneker.keap.openapiclientutil.svg?style=for-the-badge)](https://www.nuget.org/packages/soenneker.keap.openapiclientutil/)
+[![](https://img.shields.io/github/actions/workflow/status/soenneker/soenneker.keap.openapiclientutil/codeql.yml?label=CodeQL&style=for-the-badge)](https://github.com/soenneker/soenneker.keap.openapiclientutil/actions/workflows/codeql.yml)
 
 # Soenneker.Keap.OpenApiClientUtil
 
-Exposes a cached OpenAPI client instance.
+Provides a lazily created Keap Kiota client over the shared Keap `HttpClient`.
 
 ## Install
 
@@ -12,31 +14,54 @@ Exposes a cached OpenAPI client instance.
 dotnet add package Soenneker.Keap.OpenApiClientUtil
 ```
 
-## Quick start
+## Configuration
+
+```json
+{
+  "Keap": {
+    "AccessToken": "<OAuth access token>"
+  }
+}
+```
+
+`AccessToken` is required. The default base address is `https://api.infusionsoft.com/crm`, and authentication defaults to `Authorization: Bearer {token}`. Override `Keap:ClientBaseUrl`, `Keap:AuthHeaderName`, or `Keap:AuthHeaderValueTemplate` when using another compatible endpoint.
+
+## Register
 
 ```csharp
 using Soenneker.Keap.OpenApiClientUtil.Registrars;
-using Microsoft.Extensions.DependencyInjection;
 
-var services = new ServiceCollection();
-var result = services.AddKeapOpenApiClientUtilAsSingleton();
+services.AddKeapOpenApiClientUtilAsScoped();
 ```
 
-Adds `KeapOpenApiClientUtil` as a singleton service.
+The scoped registration deliberately keeps `IKeapOpenApiHttpClient` singleton. Disposing a scope releases that utility's generated-client wrapper without tearing down the long-lived HTTP client used by later scopes.
 
-## What you get
+Use `AddKeapOpenApiClientUtilAsSingleton()` when the generated-client wrapper should also live for the application lifetime.
 
-- `IKeapOpenApiClientUtil` — Exposes a cached OpenAPI client instance.
-- `KeapOpenApiClientUtilRegistrar` — Registers the OpenAPI client utility for dependency injection.
+## Usage
 
-## API at a glance
+```csharp
+using Soenneker.Keap.OpenApiClient;
+using Soenneker.Keap.OpenApiClient.Models;
+using Soenneker.Keap.OpenApiClientUtil.Abstract;
 
-| API | What it does | Result / important behavior |
-| --- | --- | --- |
-| `KeapOpenApiClientUtilRegistrar.AddKeapOpenApiClientUtilAsSingleton(services)` | Adds `KeapOpenApiClientUtil` as a singleton service. | The same service collection, so additional registrations can be chained. |
-| `KeapOpenApiClientUtilRegistrar.AddKeapOpenApiClientUtilAsScoped(services)` | Adds `KeapOpenApiClientUtil` as a scoped service. | The same service collection, so additional registrations can be chained. |
+public sealed class ContactReader(IKeapOpenApiClientUtil clientUtil)
+{
+    public async Task<ListContactsResponse?> List(
+        string? pageToken,
+        CancellationToken cancellationToken)
+    {
+        KeapOpenApiClient client = await clientUtil.Get(cancellationToken);
 
-## Practical notes
+        return await client.Rest.V2.Contacts.GetAsync(config =>
+        {
+            config.QueryParameters.PageSize = 100;
+            config.QueryParameters.PageToken = pageToken;
+        }, cancellationToken);
+    }
+}
+```
 
-- Reuse the registered client instead of constructing one per operation.
-- Dispose instances you own when their scope ends so held resources can be released.
+Repeated and concurrent `Get()` calls on the same utility instance reuse its lazily initialized generated client. Cancellation affects first-time initialization; pass the token separately to generated request methods.
+
+Let the dependency-injection container dispose the utility. Do not dispose the shared `HttpClient` obtained by the lower-level package.
