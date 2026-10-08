@@ -5,6 +5,7 @@ using Soenneker.Keap.HttpClients.Abstract;
 using Soenneker.Keap.OpenApiClientUtil.Abstract;
 using Soenneker.Keap.OpenApiClientUtil.Registrars;
 using Soenneker.Tests.HostedUnit;
+using System.Threading;
 
 namespace Soenneker.Keap.OpenApiClientUtil.Tests;
 
@@ -25,7 +26,7 @@ public sealed class KeapOpenApiClientUtilTests : HostedUnitTest
     }
 
     [Test]
-    public async ValueTask Scoped_utility_keeps_http_client_singleton()
+    public async ValueTask Scoped_utility_keeps_http_client_singleton(CancellationToken cancellationToken)
     {
         var services = new ServiceCollection();
 
