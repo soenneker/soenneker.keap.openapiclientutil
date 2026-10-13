@@ -25,7 +25,7 @@ public sealed class KeapOpenApiClientUtil : IKeapOpenApiClientUtil
         {
             HttpClient httpClient = await httpClientUtil.Get(token).NoSync();
 
-            var apiKey = configuration.GetValueStrict<string>("Keap:AccessToken");
+            var apiKey = configuration.GetStringStrict("Keap:AccessToken");
             string authHeaderName = configuration["Keap:AuthHeaderName"] ?? "Authorization";
             string authHeaderValueTemplate = configuration["Keap:AuthHeaderValueTemplate"] ?? "Bearer {token}";
             string authHeaderValue = authHeaderValueTemplate.Replace("{token}", apiKey, StringComparison.Ordinal);
